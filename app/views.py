@@ -1,41 +1,48 @@
 # -*- encoding: utf-8 -*-
 
-from flask import url_for, redirect, render_template, flash, g, session
+from flask import (url_for, redirect, render_template, flash, g,
+    session, request, jsonify)
 from flask.ext.login import login_user, logout_user, current_user, login_required
-from app import app, lm
+from app import app, lm, db
 from forms import ExampleForm, LoginForm
-from models import User
 
-@app.route('/')
+from .models import User, Bin
+
+def get_or_create(session, model, **kwargs):
+    instance = model.query.filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        instance = model(**kwargs)
+        session.add(instance)
+        session.commit()
+        return instance
+
+@app.route('/save/location/', methods = ['GET','POST'])
 def index():
-	return render_template('index.html')
+    if request.json:
+        user = None
+        count = 0
+        for data in request.json:
+            if not user:
+                user = get_or_create(db.session,User,uuid=data['device_id'])
+                db.session.add(user)
 
+            dust_bin = get_or_create(db.session,Bin,
+                uuid=data['device_id'],latitude=data['latitude'],
+                longitude=data["longitude"],timestamp=data['timestamp'],
+                user=user)
+            count += 1
 
-@app.route('/list/')
-def posts():
-	return render_template('list.html')
+            db.session.add(dust_bin)
+        db.session.commit()
 
-@app.route('/new/')
-@login_required
-def new():
-	form = ExampleForm()
-	return render_template('new.html', form=form)
+        response =  jsonify(status="success",message="locations saved")
+        return response
 
-@app.route('/save/', methods = ['GET','POST'])
-@login_required
-def save():
-	form = ExampleForm()
-	if form.validate_on_submit():
-		print "salvando os dados:"
-		print form.title.data
-		print form.content.data
-		print form.date.data
-		flash('Dados salvos!')
-	return render_template('new.html', form=form)
-
-@app.route('/view/<id>/')
-def view(id):
-	return render_template('view.html')
+    response = jsoniify(status="error",message="wrong request type",
+        status_code=400)
+    return response
 
 # === User login methods ===
 
@@ -55,7 +62,7 @@ def login():
     if form.validate_on_submit():
         login_user(g.user)
 
-    return render_template('login.html', 
+    return render_template('login.html',
         title = 'Sign In',
         form = form)
 

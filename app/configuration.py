@@ -1,4 +1,5 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+import os
 
 class Config(object):
 	"""
@@ -6,7 +7,7 @@ class Config(object):
 	"""
 	DEBUG = False
 	TESTING = False
-	DATABASE_URI = 'sqlite:///PinYourBinBackend.db'
+	SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
 	BOOTSTRAP_FONTAWESOME = True
 	SECRET_KEY = "MINHACHAVESECRETA"
 	CSRF_ENABLED = True
