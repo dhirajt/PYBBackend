@@ -8,6 +8,10 @@ from forms import ExampleForm, LoginForm
 
 from .models import User, Bin
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
 def get_or_create(session, model, **kwargs):
     instance = model.query.filter_by(**kwargs).first()
     if instance:
@@ -54,7 +58,7 @@ def before_request():
 def load_user(id):
     return User.query.get(int(id))
 
-@app.route('/login/', methods = ['GET', 'POST'])
+#@app.route('/login/', methods = ['GET', 'POST'])
 def login():
     if g.user is not None and g.user.is_authenticated():
         return redirect(url_for('index'))
@@ -70,4 +74,3 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
-
