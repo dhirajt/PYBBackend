@@ -17,7 +17,7 @@ class Config(object):
 	#RECAPTCHA_PRIVATE_KEY = "6LffFNwSAAAAAO7UURCGI7qQ811SOSZlgU69rvv7"
 
 class ProductionConfig(Config):
-	DATABASE_URI = 'mysql://user@localhost/foo'
+	DATABASE_URI = os.environ['DATABASE_URL']
 
 class DevelopmentConfig(Config):
 	DEBUG = True
